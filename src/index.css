@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-yellow: #D4F455;
+  --color-brand-cyan: #00F5FF;
+  --color-brand-purple: #B692F6;
+  --color-card-bg: #1E1E20;
+  --color-sidebar-bg: #121214;
+  --color-dashboard-bg: #121214;
+}
+
+body {
+  @apply bg-dashboard-bg text-white antialiased;
+}
+
+.bg-grid-checker {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
