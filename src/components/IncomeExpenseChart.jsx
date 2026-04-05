@@ -1,29 +1,6 @@
 import React from 'react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-
-const generateDailyData = () => {
-    const data = [];
-    const baseIncome = 5000;
-    const baseExpense = 4000;
-
-    for (let i = 1; i <= 30; i++) {
-        const dayIncome = baseIncome + Math.random() * 2000 - 1000;
-        const dayExpense = baseExpense + Math.random() * 1500 - 750;
-        const net = dayIncome - dayExpense;
-        data.push({
-            day: i,
-            income: Math.round(dayIncome),
-            in2: Math.round(dayIncome * 0.7),
-            in3: Math.round(dayIncome * 0.4),
-            net: Math.round(net),
-            n2: Math.round(net * 0.6),
-            n3: Math.round(net * 0.3),
-        });
-    }
-    return data;
-};
-
-const dailyData = generateDailyData();
+import { cn } from '../utils/cn';
 
 const GlowingDot = (props) => {
     const { cx, cy, payload, index } = props;
@@ -51,10 +28,10 @@ const GlowingDot = (props) => {
     );
 };
 
-const IncomeExpenseChart = () => {
+const IncomeExpenseChart = ({ data }) => {
     return (
         <div className="bg-card-bg p-6 rounded-2xl h-[400px] border border-white/5 relative overflow-hidden shadow-2xl backdrop-blur-md">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-4 md:space-y-0">
                 <div>
                     <h3 className="text-gray-300 text-2xl font-bold tracking-tight">Daily Performance</h3>
                     <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Universal Financial Delta</p>
@@ -73,7 +50,7 @@ const IncomeExpenseChart = () => {
 
             <div className="h-[260px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={dailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                             <linearGradient id="inFlowGrad" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#00F5FF" stopOpacity={0.2} />
@@ -113,7 +90,7 @@ const IncomeExpenseChart = () => {
                                     const income = payload.find(p => p.dataKey === 'income')?.value || 0;
                                     const net = payload.find(p => p.dataKey === 'net')?.value || 0;
                                     return (
-                                        <div className="bg-[#121214]/90 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl">
+                                        <div className="bg-[#121214]/90 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl z-[200]">
                                             <p className="text-gray-500 text-[9px] uppercase mb-3 font-black tracking-widest text-center">Day {label}</p>
                                             <div className="space-y-2">
                                                 <div className="flex justify-between items-center space-x-10">

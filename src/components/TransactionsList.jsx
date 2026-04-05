@@ -1,29 +1,63 @@
 import React from 'react';
 
-const transactions = [
-    { id: 1, category: 'Food', date: '2024-03-28', amount: 50, type: 'expense' },
-    { id: 2, category: 'Salary', date: '2024-03-25', amount: 3000, type: 'income' },
-    { id: 3, category: 'Rent', date: '2024-03-01', amount: 1200, type: 'expense' },
-    { id: 4, category: 'Shopping', date: '2024-03-15', amount: 200, type: 'expense' },
-    { id: 5, category: 'Freelance', date: '2024-03-20', amount: 500, type: 'income' },
-];
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+};
 
-const TransactionsList = () => {
+const TransactionsList = ({ data = [], isLoading = false, onViewAll }) => {
     return (
-        <div className="bg-card-bg p-6 rounded-3xl border border-white/5">
-            <h3 className="text-gray-400 text-xl font-medium mb-6">Recent Transactions</h3>
+        <div className="bg-card-bg p-6 rounded-2xl border border-white/5 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-gray-400 text-xl font-medium tracking-tight">Recent Transactions</h1>
+                <button
+                    onClick={onViewAll}
+                    disabled={isLoading}
+                    className="text-[10px] font-black uppercase tracking-widest text-brand-yellow hover:opacity-80 transition-opacity disabled:opacity-30"
+                >
+                    View All
+                </button>
+            </div>
+
             <div className="space-y-4">
-                {transactions.map((t) => (
-                    <div key={t.id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors">
-                        <div className="flex flex-col">
-                            <span className="font-semibold text-white">{t.category}</span>
-                            <span className="text-xs text-gray-500">{t.date}</span>
+                {isLoading ? (
+                    // Skeleton Loading Rows
+                    Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5 animate-pulse">
+                            <div className="flex items-center space-x-4">
+                                <div className="w-10 h-10 rounded-full bg-white/5" />
+                                <div className="space-y-2">
+                                    <div className="w-24 h-3 bg-white/5 rounded" />
+                                    <div className="w-16 h-2 bg-white/5 rounded" />
+                                </div>
+                            </div>
+                            <div className="w-20 h-4 bg-white/5 rounded" />
                         </div>
-                        <span className={`font-bold ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
-                            {t.type === 'income' ? '+' : '-'}${t.amount}
-                        </span>
+                    ))
+                ) : data.length > 0 ? (
+                    data.slice(0, 5).map((t) => (
+                        <div key={t.id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-white group-hover:text-brand-yellow transition-colors">{t.category}</span>
+                                <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">{t.date}</span>
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className={`font-bold text-sm ${t.type === 'Income' ? 'text-green-400' : 'text-red-400'}`}>
+                                    {t.type === 'Income' ? '+' : '-'}${t.amount.toLocaleString()}
+                                </span>
+                                <span className="text-[10px] text-gray-600 font-bold uppercase tracking-tighter">{t.status}</span>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="text-center py-10">
+                        <p className="text-gray-500 text-sm italic">No recent transactions found.</p>
                     </div>
-                ))}
+                )}
             </div>
         </div>
     );

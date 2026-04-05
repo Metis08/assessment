@@ -1,15 +1,6 @@
 import React from 'react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, CartesianGrid, XAxis, YAxis } from 'recharts';
-
-const data = [
-    { time: '1', display: '01', expense: 3200, e2: 2000, e3: 1000 },
-    { time: '2', display: '02', expense: 4500, e2: 3000, e3: 2000 },
-    { time: '3', display: '03', expense: 2800, e2: 1800, e3: 800 },
-    { time: '4', display: '04', expense: 5100, e2: 4000, e3: 2500 },
-    { time: '5', display: '05', expense: 3900, e2: 2500, e3: 1500 },
-    { time: '6', display: '06', expense: 6200, e2: 4500, e3: 3000 },
-    { time: '7', display: '07', expense: 5500, e2: 4000, e3: 2500 },
-];
+import { cn } from '../utils/cn';
 
 const CyanGlowingDot = (props) => {
     const { cx, cy, payload, index } = props;
@@ -36,7 +27,7 @@ const CyanGlowingDot = (props) => {
     );
 };
 
-const ExpenseTrendChart = () => {
+const ExpenseTrendChart = ({ data }) => {
     return (
         <div className="bg-card-bg p-6 rounded-2xl h-[220px] shadow-2xl border border-white/5 relative overflow-hidden">
             <h3 className="text-gray-400 text-xl font-bold mb-4 tracking-tight">Expense Trend</h3>

@@ -1,15 +1,6 @@
 import React from 'react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, CartesianGrid, XAxis, YAxis } from 'recharts';
-
-const data = [
-    { day: '1', display: '01', balance: 8500, b2: 6000, b3: 4000 },
-    { day: '2', display: '02', balance: 9200, b2: 7000, b3: 5000 },
-    { day: '3', display: '03', balance: 8900, b2: 6500, b3: 4500 },
-    { day: '4', display: '04', balance: 10500, b2: 8000, b3: 6000 },
-    { day: '5', display: '05', balance: 9800, b2: 7500, b3: 5500 },
-    { day: '6', display: '06', balance: 11000, b2: 9000, b3: 7000 },
-    { day: '7', display: '07', balance: 10000, b2: 8000, b3: 6000 },
-];
+import { cn } from '../utils/cn';
 
 const GlowingDot = (props) => {
     const { cx, cy, payload, index } = props;
@@ -36,7 +27,7 @@ const GlowingDot = (props) => {
     );
 };
 
-const BalanceTrendChart = () => {
+const BalanceTrendChart = ({ data }) => {
     return (
         <div className="bg-card-bg p-6 rounded-2xl h-[220px] shadow-2xl border border-white/5 relative overflow-hidden">
             <h3 className="text-gray-400 text-xl font-bold mb-4 tracking-tight">Balance Trend</h3>

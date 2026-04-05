@@ -1,15 +1,6 @@
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
 
-const data = [
-    { name: 'Marketing', value: 400, color: '#fb923c' },
-    { name: 'Research', value: 300, color: '#60a5fa' },
-    { name: 'Personnel', value: 300, color: '#f472b6' },
-    { name: 'Infrastructure', value: 200, color: '#d9f99d' },
-    { name: 'Operations', value: 278, color: '#4ade80' },
-    { name: 'Legal', value: 189, color: '#fef08a' },
-];
-
 const renderActiveShape = (props) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
     return (
@@ -22,13 +13,13 @@ const renderActiveShape = (props) => {
                 startAngle={startAngle}
                 endAngle={endAngle}
                 fill={fill}
-                cornerRadius={15}
+                cornerRadius={12}
             />
         </g>
     );
 };
 
-const CategoricalExpenseChart = () => {
+const CategoricalExpenseChart = ({ data }) => {
     const [activeIndex, setActiveIndex] = useState(-1);
 
     const onPieEnter = (_, index) => {
@@ -45,17 +36,17 @@ const CategoricalExpenseChart = () => {
         <div className="bg-card-bg p-6 rounded-2xl flex flex-col h-full border border-white/5 shadow-2xl transition-all duration-500 overflow-hidden">
             <h3 className="text-gray-300 text-2xl font-medium mb-4 text-center tracking-tight">Categorical Expense</h3>
 
-            <div className="h-[200px] w-full relative flex items-center justify-center">
+            <div className="h-[280px] w-full relative flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart margin={{ top: 0, bottom: 0 }}>
                         <Pie
                             activeIndex={activeIndex}
                             activeShape={renderActiveShape}
                             data={data}
-                            innerRadius={70}
-                            outerRadius={100}
+                            innerRadius={75}
+                            outerRadius={95}
                             paddingAngle={8}
-                            cornerRadius={12}
+                            cornerRadius={10}
                             stroke="none"
                             dataKey="value"
                             onMouseEnter={onPieEnter}
@@ -83,17 +74,20 @@ const CategoricalExpenseChart = () => {
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 block mb-1">
                                 {activeItem.name}
                             </span>
-                            <span className="text-4xl font-bold tracking-wider text-white">
+                            <span className="text-2xl font-bold tracking-wider text-white">
                                 ${activeItem.value.toLocaleString()}
                             </span>
                         </div>
                     ) : (
-                        <span className="text-4xl font-bold tracking-wider text-white opacity-90 animate-in fade-in duration-500">$10.5K</span>
+                        <div className="text-center">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 block mb-1">Total</span>
+                            <span className="text-3xl font-bold tracking-wider text-white opacity-90 animate-in fade-in duration-500">$10.5K</span>
+                        </div>
                     )}
                 </div>
             </div>
 
-            <div className="flex flex-col space-y-3 mt-auto px-10 border-t border-white/5 pt-6 pb-2">
+            <div className="flex flex-col space-y-3 mt-auto px-6 border-t border-white/5 pt-6 pb-2">
                 {data.map((item, index) => (
                     <div
                         key={index}
@@ -102,10 +96,10 @@ const CategoricalExpenseChart = () => {
                         onMouseLeave={() => setActiveIndex(-1)}
                     >
                         <div
-                            className={`w-5 h-5 rounded-full flex-shrink-0 transition-all duration-300 ${activeIndex === index ? 'scale-125 shadow-[0_0_15px_rgba(255,255,255,0.4)]' : ''}`}
+                            className={`w-3 h-3 rounded-full flex-shrink-0 transition-all duration-300 ${activeIndex === index ? 'scale-125 shadow-[0_0_15px_rgba(255,255,255,0.4)]' : ''}`}
                             style={{ backgroundColor: item.color }}
                         />
-                        <span className={`text-lg transition-colors duration-300 ${activeIndex === index ? 'text-white font-bold' : 'text-gray-400'}`}>
+                        <span className={`text-[15px] transition-colors duration-300 ${activeIndex === index ? 'text-white font-bold' : 'text-gray-400'}`}>
                             {item.name}
                         </span>
                     </div>
