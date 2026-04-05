@@ -60,6 +60,17 @@ function App() {
   };
 
 
+  const handleAddTransaction = async (newTransaction) => {
+    try {
+      const { createTransaction } = await import('./services/api');
+      await createTransaction(newTransaction, selectedMonth, selectedYear);
+      // Reload or optimistic update
+      setAllTransactions(prev => [newTransaction, ...prev]);
+    } catch (error) {
+      console.error('Failed to add transaction:', error);
+    }
+  };
+
   const [dashHeaderRef, dashHeaderInView] = useInView({ triggerOnce: true, threshold: 0 });
   const [dashChartsRef, dashChartsInView] = useInView({ triggerOnce: true, threshold: 0 });
   const [pieRef, pieInView] = useInView({ triggerOnce: true, threshold: 0 });
@@ -83,16 +94,16 @@ function App() {
       <main className="flex-1 overflow-hidden relative rounded-2xl shadow-2xl border-t border-white/5 pb-32 lg:pb-0 transition-all duration-500 bg-dashboard-bg bg-grid-checker">
         <div
           key={activeTab}
-          className="h-full overflow-y-auto px-4 py-6 md:px-8 md:py-8 lg:px-12 lg:py-8 custom-scrollbar animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-700 ease-out fill-mode-both"
+          className="h-full overflow-y-auto overflow-x-hidden px-4 py-6 md:px-8 md:py-8 lg:px-12 lg:py-8 custom-scrollbar animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-700 ease-out fill-mode-both"
         >
           {activeTab === 'dashboard' ? (
-            <div key={selectedMonth} className="space-y-12 transition-all duration-500">
+            <div className="space-y-12 transition-all duration-500">
 
               <div ref={dashHeaderRef} className={cn("transition-all duration-700 ease-out", dashHeaderInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-6 md:space-y-0">
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white focus:outline-none">Dashboard</h1>
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 space-y-8 md:space-y-0 md:gap-12">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white focus:outline-none whitespace-nowrap">Dashboard</h1>
 
-                  <div className="flex flex-row items-center gap-2 sm:gap-6 w-full overflow-hidden">
+                  <div className="flex flex-row items-center gap-3 sm:gap-6 w-full md:w-auto overflow-hidden justify-start md:justify-end">
                     <StatsCard
                       label="Total Balance"
                       value={dashboardStats.stats.totalBalance}
@@ -114,8 +125,7 @@ function App() {
 
               {/* Main Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-                <div ref={dashChartsRef} className={cn("lg:col-span-2 space-y-8 flex flex-col transition-all duration-700 delay-150 ease-out", dashChartsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
-
+                <div ref={dashChartsRef} className="lg:col-span-2 space-y-8 flex flex-col transition-all duration-700">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <BalanceTrendChart data={dashboardStats.balanceTrend} />
                     <ExpenseTrendChart data={dashboardStats.expenseTrend} />
@@ -124,14 +134,13 @@ function App() {
                     <IncomeExpenseChart data={dashboardStats.dailyPerformance} />
                   </div>
                 </div>
-                <div ref={pieRef} className={cn("h-full transition-all duration-700 delay-225 ease-out", pieInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
-
-                  <CategoricalExpenseChart data={dashboardStats.categories} isVisible={pieInView} />
+                <div ref={pieRef} className="h-full transition-all duration-700">
+                  <CategoricalExpenseChart data={dashboardStats.categories} isVisible={true} />
                 </div>
               </div>
 
               {/* Transactions List */}
-              <div ref={dashTransRef} className={cn("mt-12 mb-12 transition-all duration-700 delay-300 ease-out", dashTransInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+              <div ref={dashTransRef} className="mt-12 mb-12 transition-all duration-700">
 
                 <TransactionsList
                   data={isLoading ? [] : allTransactions.slice(0, 5)}
@@ -163,8 +172,11 @@ function App() {
                 timeFilter={timeFilter}
                 setTimeFilter={setTimeFilter}
                 selectedMonth={selectedMonth}
+                setSelectedMonth={setSelectedMonth}
                 selectedYear={selectedYear}
+                setSelectedYear={setSelectedYear}
                 showHeaderFilters={false}
+                onAddTransaction={handleAddTransaction}
               />
             </div>
           ) : (

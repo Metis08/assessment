@@ -10,7 +10,7 @@
 }
 
 body {
-  @apply bg-dashboard-bg text-white antialiased;
+  @apply bg-dashboard-bg text-white antialiased overflow-x-hidden;
 }
 
 .bg-grid-checker {
@@ -43,6 +43,28 @@ body {
   background: transparent;
 }
 
+/* Utilities to hide scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+/* Horizontal scrollbar refinement */
+.custom-scrollbar-h::-webkit-scrollbar {
+  height: 4px;
+}
+
 .custom-scrollbar-h::-webkit-scrollbar-track {
   background: transparent;
+}
+
+.custom-scrollbar-h::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
 }

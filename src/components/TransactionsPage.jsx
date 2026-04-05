@@ -5,6 +5,7 @@ import {
     Plus,
     MoreHorizontal,
     ArrowRight,
+    ArrowLeft,
     CheckCircle2,
     XCircle,
     Clock,
@@ -184,12 +185,172 @@ const TransactionModal = ({ transaction, onClose }) => {
     );
 };
 
-const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFilter, selectedMonth, selectedYear }) => {
+const AddTransactionModal = ({ isOpen, onClose, onAdd }) => {
+    const [formData, setFormData] = useState({
+        name: '',
+        amount: '',
+        category: 'Operations',
+        type: 'debited',
+        status: 'Completed',
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+    });
+
+    if (!isOpen) return null;
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!formData.name || !formData.amount) return;
+
+        onAdd({
+            ...formData,
+            id: Date.now().toString(),
+            amount: parseFloat(formData.amount),
+            icon: 'Briefcase' // Default icon for new mock transactions
+        });
+        onClose();
+        // Reset form
+        setFormData({
+            name: '',
+            amount: '',
+            category: 'Operations',
+            type: 'debited',
+            status: 'Completed',
+            date: new Date().toISOString().split('T')[0],
+            time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-md" onClick={onClose} />
+            <div className="bg-[#1a1a1c] border border-white/5 rounded-[2rem] w-full max-w-lg relative z-10 overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-2xl font-black text-white tracking-tight">Add Transaction</h3>
+                        <button type="button" onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-lg transition-colors">
+                            <X size={20} className="text-zinc-500 hover:text-white" />
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Description</label>
+                            <input
+                                required
+                                type="text"
+                                placeholder="e.g. AWS Cloud Services"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-yellow/50 transition-all font-bold"
+                                value={formData.name}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Amount (₹)</label>
+                                <input
+                                    required
+                                    type="number"
+                                    placeholder="5000"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-yellow/50 transition-all font-black"
+                                    value={formData.amount}
+                                    onChange={e => setFormData({ ...formData, amount: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Type</label>
+                                <select
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-brand-yellow/50 transition-all font-bold"
+                                    value={formData.type}
+                                    onChange={e => setFormData({ ...formData, type: e.target.value })}
+                                >
+                                    <option value="debited" className="bg-[#1a1a1c]">Expense</option>
+                                    <option value="credited" className="bg-[#1a1a1c]">Income</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Category</label>
+                                <select
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-brand-yellow/50 transition-all font-bold"
+                                    value={formData.category}
+                                    onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                >
+                                    {['Infrastructure', 'Communication', 'DevTools', 'Operations', 'Revenue', 'Design', 'Rent', 'Benefits', 'Legal', 'Maintenance', 'Investments'].map(c => (
+                                        <option key={c} value={c} className="bg-[#1a1a1c]">{c}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Status</label>
+                                <select
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-brand-yellow/50 transition-all font-bold"
+                                    value={formData.status}
+                                    onChange={e => setFormData({ ...formData, status: e.target.value })}
+                                >
+                                    <option value="Completed" className="bg-[#1a1a1c]">Completed</option>
+                                    <option value="Pending" className="bg-[#1a1a1c]">Pending</option>
+                                    <option value="Processing" className="bg-[#1a1a1c]">Processing</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="w-full bg-brand-yellow text-black font-black py-5 rounded-2xl hover:bg-white transition-all transform active:scale-95 shadow-xl shadow-brand-yellow/20 mt-4"
+                    >
+                        Add Transaction
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFilter, selectedMonth, setSelectedMonth, selectedYear, setSelectedYear, onAddTransaction }) => {
+
+    const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const handlePrev = () => {
+        if (timeFilter === 'Monthly') {
+            const index = monthNames.indexOf(selectedMonth);
+            if (index === 0) {
+                setSelectedMonth('December');
+                setSelectedYear((parseInt(selectedYear) - 1).toString());
+            } else {
+                setSelectedMonth(monthNames[index - 1]);
+            }
+        } else if (timeFilter === 'Annually') {
+            setSelectedYear((parseInt(selectedYear) - 1).toString());
+        }
+    };
+
+    const handleNext = () => {
+        if (timeFilter === 'Monthly') {
+            const index = monthNames.indexOf(selectedMonth);
+            if (index === 11) {
+                setSelectedMonth('January');
+                setSelectedYear((parseInt(selectedYear) + 1).toString());
+            } else {
+                setSelectedMonth(monthNames[index + 1]);
+            }
+        } else if (timeFilter === 'Annually') {
+            setSelectedYear((parseInt(selectedYear) + 1).toString());
+        }
+    };
 
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All');
     const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState(null);
     const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
     const [showAdminConfirmModal, setShowAdminConfirmModal] = useState(false);
@@ -256,7 +417,12 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
             if (sortConfig.key === 'date') {
                 const dateA = new Date(a.date);
                 const dateB = new Date(b.date);
-                return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+                const diff = sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+
+                if (diff !== 0) return diff;
+
+                // Tie-breaker: Newer items (by time) first
+                return b.time.localeCompare(a.time);
             }
             if (sortConfig.key === 'amount') {
                 return sortConfig.direction === 'asc' ? a.amount - b.amount : b.amount - a.amount;
@@ -276,21 +442,21 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
     return (
         <div
             key={`${selectedMonth}-${selectedYear}`}
-            className="flex-1 h-full overflow-hidden flex flex-col bg-transparent scroll-smooth animate-in fade-in slide-in-from-right-4 duration-500 ease-out"
+            className="flex-1 h-full overflow-y-auto overflow-x-hidden flex flex-col bg-transparent scroll-smooth animate-in fade-in slide-in-from-right-4 duration-500 ease-out"
         >
 
             {/* Header Content */}
-            <div className="px-6 pt-8 pb-4 md:px-12 lg:px-16 space-y-6 flex-shrink-0">
+            <div className="px-6 pt-8 pb-4 md:px-12 lg:px-16 space-y-6 flex-shrink-0 relative z-[100]">
                 {/* Top Row: Title & Role Switcher */}
-                <div ref={headerRef} className={cn("flex justify-between items-start transition-all duration-700 ease-out", headerInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
-                    <div className="space-y-3 sm:space-y-1">
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">Transactions</h1>
+                <div ref={headerRef} className={cn("relative z-[150] flex flex-col sm:flex-row justify-between items-start gap-8 md:gap-12 transition-all duration-700 ease-out", headerInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+                    <div className="space-y-4">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white leading-none whitespace-nowrap">Transactions</h1>
                         <p className="text-zinc-500 text-[10px] sm:text-xs font-black uppercase tracking-widest opacity-60">Activity log for your connected accounts.</p>
                     </div>
 
                     {/* Role Selector Dropdown */}
-                    <div className="relative" ref={dropdownRef}>
-                        <div className="flex flex-col items-end">
+                    <div className="relative w-full sm:w-auto" ref={dropdownRef}>
+                        <div className="flex flex-col items-start sm:items-end">
                             <button
                                 onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
                                 className="flex items-center space-x-3 bg-white/5 hover:bg-white/10 backdrop-blur-md transition-all px-4 py-2 rounded-xl border border-white/5 group"
@@ -302,13 +468,13 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
                                     <ChevronDown size={14} className={cn("text-zinc-500 transition-transform duration-300", isRoleDropdownOpen ? 'rotate-180' : '')} />
                                 </div>
                             </button>
-                            <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest mt-2 pr-1 text-right max-w-[120px] leading-tight">
+                            <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest mt-2 text-left sm:text-right max-w-none sm:max-w-[120px] leading-tight">
                                 Demo mode: switch roles to preview access levels
                             </span>
                         </div>
 
                         {isRoleDropdownOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-48 bg-[#1a1a1c] border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden py-1.5 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-48 bg-[#1a1a1c] border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden py-1.5 z-[200] animate-in fade-in slide-in-from-top-2 duration-200">
                                 {['Viewer', 'Admin'].map((r) => (
                                     <button
                                         key={r}
@@ -328,7 +494,7 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
                 </div>
 
                 {/* Filters Row (Stacked and Breathable) */}
-                <div ref={filtersRef} className={cn("flex flex-col space-y-4 pb-8 mb-4 border-b border-white/5 transition-all duration-700 delay-75 ease-out", filtersInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+                <div ref={filtersRef} className={cn("relative z-[10] flex flex-col space-y-4 pb-8 mb-4 border-b border-white/5 transition-all duration-700 delay-75 ease-out", filtersInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
                     {/* Time Group */}
                     <div className="flex items-center bg-white/5 backdrop-blur-md p-1 rounded-full border border-white/5 w-full sm:w-fit justify-center sm:justify-start">
                         {['Today', 'Monthly', 'Annually'].map(f => (
@@ -364,11 +530,28 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
 
                 {/* Date & Search Row */}
                 <div ref={searchRef} className={cn("flex flex-col sm:flex-row items-center justify-between gap-6 pt-4 border-t border-white/5 sm:border-0 transition-all duration-700 delay-150 ease-out", searchInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
-                    <h3 className="text-white font-black text-sm tracking-widest uppercase text-zinc-500">{todayStr}</h3>
+                    <div className="flex items-center space-x-6">
+                        <button
+                            onClick={handlePrev}
+                            disabled={timeFilter === 'Today'}
+                            className="p-2 hover:bg-white/10 rounded-full transition-all disabled:opacity-20"
+                        >
+                            <ArrowLeft size={18} className="text-brand-yellow" />
+                        </button>
+                        <h3 className="text-white font-black text-sm tracking-widest uppercase min-w-[140px] text-center">
+                            {timeFilter === 'Today' ? 'Today' : `${selectedMonth} ${selectedYear}`}
+                        </h3>
+                        <button
+                            onClick={handleNext}
+                            disabled={timeFilter === 'Today'}
+                            className="p-2 hover:bg-white/10 rounded-full transition-all disabled:opacity-20"
+                        >
+                            <ArrowRight size={18} className="text-brand-yellow" />
+                        </button>
+                    </div>
 
                     <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                         <div className="relative group w-full sm:w-64">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-yellow transition-colors" size={16} />
                             <input
                                 type="text"
                                 placeholder="Search description..."
@@ -376,10 +559,14 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-brand-yellow/50 transition-all font-medium"
                             />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-brand-yellow transition-all duration-300 pointer-events-none" size={16} />
                         </div>
 
                         <button
-                            onClick={() => role === 'Viewer' && setShowRestrictedModal(true)}
+                            onClick={() => {
+                                if (role === 'Viewer') setShowRestrictedModal(true);
+                                else setIsAddModalOpen(true);
+                            }}
                             className={cn(
                                 "flex items-center space-x-3 px-8 py-3.5 rounded-2xl text-xs font-black tracking-widest uppercase transition-all transform active:scale-95 shadow-2xl w-full sm:w-auto justify-center",
                                 role === 'Admin'
@@ -567,6 +754,12 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
             <TransactionModal
                 transaction={selectedTransaction}
                 onClose={() => setSelectedTransaction(null)}
+            />
+
+            <AddTransactionModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onAdd={onAddTransaction}
             />
 
             <style jsx>{`

@@ -59,3 +59,21 @@ export const deleteTransaction = async (id) => {
         }, 300);
     });
 };
+
+/**
+ * Creates a new transaction in the "backend" (localStorage)
+ */
+export const createTransaction = async (newTransaction, month, year) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            const key = month && year ? `transactions_${month}_${year}` : 'transactions';
+            const data = localStorage.getItem(key);
+            const currentData = data ? JSON.parse(data) : [];
+
+            // Add new transaction to the beginning
+            const newData = [newTransaction, ...currentData];
+            localStorage.setItem(key, JSON.stringify(newData));
+            resolve(newTransaction);
+        }, 500);
+    });
+};
