@@ -77,13 +77,13 @@ const CategoricalExpenseChart = ({ data, isVisible = true }) => {
                                 {activeItem.name}
                             </span>
                             <span className="text-2xl font-bold tracking-wider text-white">
-                                ${activeItem.value.toLocaleString()}
+                                ₹{activeItem.value.toLocaleString()}
                             </span>
                         </div>
                     ) : (
                         <div className="text-center">
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 block mb-1">Total</span>
-                            <span className="text-3xl font-bold tracking-wider text-white opacity-90 animate-in fade-in duration-500">$10.5K</span>
+                            <span className="text-3xl font-bold tracking-wider text-white opacity-90 animate-in fade-in duration-500">₹10.5K</span>
                         </div>
                     )}
                 </div>

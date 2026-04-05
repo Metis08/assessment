@@ -29,15 +29,15 @@ const MonthlyComparisonChart = ({ data }) => {
                         <CartesianGrid vertical={false} stroke="#ffffff03" />
                         <XAxis
                             dataKey="month"
-                            axisLine={false}
+                            axisLine={{ stroke: '#ffffff40' }}
                             tickLine={false}
-                            tick={{ fill: '#52525b', fontSize: 10, fontWeight: '900' }}
+                            tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: '900' }}
                             dy={10}
                         />
                         <YAxis
-                            axisLine={false}
+                            axisLine={{ stroke: '#ffffff40' }}
                             tickLine={false}
-                            tick={{ fill: '#52525b', fontSize: 10, fontWeight: '900' }}
+                            tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: '900' }}
                             tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`}
                         />
                         <Tooltip

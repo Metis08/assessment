@@ -65,13 +65,13 @@ const IncomeExpenseChart = ({ data }) => {
                         <CartesianGrid vertical={true} horizontal={false} stroke="#ffffff03" />
                         <XAxis
                             dataKey="day"
-                            axisLine={false}
+                            axisLine={{ stroke: '#ffffff40' }}
                             tickLine={false}
                             tick={({ x, y, payload }) => {
                                 const day = payload.value;
                                 if (day === 1 || day === 8 || day === 15 || day === 22 || day === 29) {
                                     return (
-                                        <text x={x} y={y + 20} fill="#374151" fontSize={10} fontWeight="900" textAnchor="middle">
+                                        <text x={x} y={y + 20} fill="#9CA3AF" fontSize={10} fontWeight="900" textAnchor="middle">
                                             {`W${Math.floor(day / 7) + 1}`}
                                         </text>
                                     );
@@ -80,10 +80,10 @@ const IncomeExpenseChart = ({ data }) => {
                             }}
                         />
                         <YAxis
-                            axisLine={false}
+                            axisLine={{ stroke: '#ffffff40' }}
                             tickLine={false}
-                            tick={{ fill: '#1F2937', fontSize: 10, fontWeight: '900' }}
-                            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                            tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: '900' }}
+                            tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`}
                         />
                         <Tooltip
                             content={({ active, payload, label }) => {
@@ -96,11 +96,11 @@ const IncomeExpenseChart = ({ data }) => {
                                             <div className="space-y-2">
                                                 <div className="flex justify-between items-center space-x-10">
                                                     <span className="text-gray-400 text-[10px] font-bold uppercase">Inflow:</span>
-                                                    <span className="text-cyan-400 font-black text-xs">${income.toLocaleString()}</span>
+                                                    <span className="text-cyan-400 font-black text-xs">₹{income.toLocaleString()}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center space-x-10 border-t border-white/5 pt-2">
                                                     <span className="text-gray-400 text-[10px] font-bold uppercase">Net Delta:</span>
-                                                    <span className="text-brand-yellow font-black text-xs">${net.toLocaleString()}</span>
+                                                    <span className="text-brand-yellow font-black text-xs">₹{net.toLocaleString()}</span>
                                                 </div>
                                             </div>
                                         </div>

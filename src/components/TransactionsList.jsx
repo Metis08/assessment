@@ -47,7 +47,7 @@ const TransactionsList = ({ data = [], isLoading = false, onViewAll }) => {
                             </div>
                             <div className="flex flex-col items-end">
                                 <span className={`font-bold text-sm ${t.type === 'Income' ? 'text-green-400' : 'text-red-400'}`}>
-                                    {t.type === 'Income' ? '+' : '-'}${t.amount.toLocaleString()}
+                                    {t.type === 'Income' ? '+' : '-'}₹{t.amount.toLocaleString()}
                                 </span>
                                 <span className="text-[10px] text-gray-600 font-bold uppercase tracking-tighter">{t.status}</span>
                             </div>

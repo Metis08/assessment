@@ -429,7 +429,6 @@ const InsightsPage = ({
                     ))}
                 </div>
             </div>
-
         </div>
     );
 };

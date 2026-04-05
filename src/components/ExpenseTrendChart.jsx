@@ -47,23 +47,23 @@ const ExpenseTrendChart = ({ data }) => {
                         <CartesianGrid horizontal={false} vertical={true} stroke="#ffffff05" strokeDasharray="1 0" />
                         <XAxis
                             dataKey="display"
-                            axisLine={false}
+                            axisLine={{ stroke: '#ffffff40' }}
                             tickLine={false}
-                            tick={{ fill: '#4B5563', fontSize: 8, fontWeight: 'bold' }}
+                            tick={{ fill: '#9CA3AF', fontSize: 8, fontWeight: 'bold' }}
                             dy={10}
                         />
                         <YAxis
-                            axisLine={false}
+                            axisLine={{ stroke: '#ffffff40' }}
                             tickLine={false}
-                            tick={{ fill: '#1F2937', fontSize: 8, fontWeight: '900' }}
-                            tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                            tick={{ fill: '#9CA3AF', fontSize: 8, fontWeight: 'bold' }}
+                            tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
                         />
                         <Tooltip
                             content={({ active, payload }) => {
                                 if (active && payload && payload.length) {
                                     return (
                                         <div className="bg-[#121214]/90 backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-2xl">
-                                            <p className="text-white font-bold text-lg">${payload[0].value.toLocaleString()}</p>
+                                            <p className="text-white font-bold text-lg">₹{payload[0].value.toLocaleString()}</p>
                                         </div>
                                     );
                                 }
@@ -86,7 +86,7 @@ const ExpenseTrendChart = ({ data }) => {
                 </ResponsiveContainer>
             </div>
             <div className="absolute bottom-6 right-8">
-                <span className="text-[10px] font-bold text-white opacity-80">$125,890.00</span>
+                <span className="text-[10px] font-bold text-white opacity-80">₹125,890.00</span>
             </div>
         </div>
     );
