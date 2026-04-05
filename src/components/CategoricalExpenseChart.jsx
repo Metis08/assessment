@@ -19,7 +19,7 @@ const renderActiveShape = (props) => {
     );
 };
 
-const CategoricalExpenseChart = ({ data }) => {
+const CategoricalExpenseChart = ({ data, isVisible = true }) => {
     const [activeIndex, setActiveIndex] = useState(-1);
 
     const onPieEnter = (_, index) => {
@@ -54,7 +54,9 @@ const CategoricalExpenseChart = ({ data }) => {
                             animationBegin={0}
                             animationDuration={1500}
                             animationEasing="ease-out"
+                            isAnimationActive={isVisible}
                         >
+
                             {data.map((entry, index) => (
                                 <Cell
                                     key={`cell-${index}`}

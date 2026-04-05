@@ -31,6 +31,8 @@ import {
     ArrowUpDown
 } from 'lucide-react';
 import { cn } from '../utils/cn';
+import { useInView } from '../hooks/useInView';
+
 
 const iconMap = {
     ShoppingBag,
@@ -182,7 +184,8 @@ const TransactionModal = ({ transaction, onClose }) => {
     );
 };
 
-const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFilter }) => {
+const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFilter, selectedMonth, selectedYear }) => {
+
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All');
@@ -194,7 +197,14 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
 
     const dropdownRef = useRef(null);
 
+    const [headerRef, headerInView] = useInView({ triggerOnce: true, threshold: 0 });
+    const [filtersRef, filtersInView] = useInView({ triggerOnce: true, threshold: 0 });
+    const [searchRef, searchInView] = useInView({ triggerOnce: true, threshold: 0 });
+    const [tableRef, tableInView] = useInView({ triggerOnce: true, threshold: 0 });
+
+
     useEffect(() => {
+
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsRoleDropdownOpen(false);
@@ -264,19 +274,23 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
     }, [timeFilter]);
 
     return (
-        <div className="flex-1 h-full overflow-hidden flex flex-col bg-transparent scroll-smooth">
+        <div
+            key={`${selectedMonth}-${selectedYear}`}
+            className="flex-1 h-full overflow-hidden flex flex-col bg-transparent scroll-smooth animate-in fade-in slide-in-from-right-4 duration-500 ease-out"
+        >
+
             {/* Header Content */}
             <div className="px-6 pt-8 pb-4 md:px-12 lg:px-16 space-y-6 flex-shrink-0">
                 {/* Top Row: Title & Role Switcher */}
-                <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                        <h1 className="text-3xl font-bold tracking-tight text-white">Transactions</h1>
-                        <p className="text-zinc-500 text-xs font-medium">Activity log for your connected accounts.</p>
+                <div ref={headerRef} className={cn("flex justify-between items-start transition-all duration-700 ease-out", headerInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+                    <div className="space-y-3 sm:space-y-1">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">Transactions</h1>
+                        <p className="text-zinc-500 text-[10px] sm:text-xs font-black uppercase tracking-widest opacity-60">Activity log for your connected accounts.</p>
                     </div>
 
                     {/* Role Selector Dropdown */}
                     <div className="relative" ref={dropdownRef}>
-                        <div className="flex flex-col items-end space-y-1.5">
+                        <div className="flex flex-col items-end">
                             <button
                                 onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
                                 className="flex items-center space-x-3 bg-white/5 hover:bg-white/10 backdrop-blur-md transition-all px-4 py-2 rounded-xl border border-white/5 group"
@@ -288,7 +302,7 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
                                     <ChevronDown size={14} className={cn("text-zinc-500 transition-transform duration-300", isRoleDropdownOpen ? 'rotate-180' : '')} />
                                 </div>
                             </button>
-                            <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest pr-1">
+                            <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest mt-2 pr-1 text-right max-w-[120px] leading-tight">
                                 Demo mode: switch roles to preview access levels
                             </span>
                         </div>
@@ -313,66 +327,79 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
                     </div>
                 </div>
 
-                {/* Filters Row (Compact Umbrella Style) */}
-                <div className="flex items-center space-x-3 overflow-x-auto custom-scrollbar-h pb-2 md:pb-0">
-                    {/* Time Umbrella */}
-                    <div className="flex items-center bg-white/5 backdrop-blur-md p-0.5 rounded-full border border-white/5 flex-shrink-0">
+                {/* Filters Row (Stacked and Breathable) */}
+                <div ref={filtersRef} className={cn("flex flex-col space-y-4 pb-8 mb-4 border-b border-white/5 transition-all duration-700 delay-75 ease-out", filtersInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+                    {/* Time Group */}
+                    <div className="flex items-center bg-white/5 backdrop-blur-md p-1 rounded-full border border-white/5 w-full sm:w-fit justify-center sm:justify-start">
                         {['Today', 'Monthly', 'Annually'].map(f => (
-                            <FilterPill key={f} label={f} active={timeFilter === f} onClick={() => setTimeFilter(f)} />
+                            <button
+                                key={f}
+                                onClick={() => setTimeFilter(f)}
+                                className={cn(
+                                    "px-5 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap",
+                                    timeFilter === f ? "bg-brand-yellow text-black shadow-[0_0_20px_rgba(212,244,85,0.3)]" : "text-zinc-500 hover:text-zinc-300"
+                                )}
+                            >
+                                {f}
+                            </button>
                         ))}
                     </div>
 
-                    {/* Status Umbrella */}
-                    <div className="flex items-center bg-white/5 backdrop-blur-md p-0.5 rounded-full border border-white/5 flex-shrink-0">
-                        {['All', 'Completed', 'Pending', 'Processing'].map(f => (
-                            <FilterPill key={f} label={f} active={statusFilter === f} onClick={() => setStatusFilter(f)} />
-                        ))}
-                    </div>
-
-                    {/* Type Umbrella */}
-                    <div className="flex items-center bg-white/5 backdrop-blur-md p-0.5 rounded-full border border-white/5 flex-shrink-0">
-                        {['All', 'Credited', 'Debited'].map(f => (
-                            <FilterPill key={f} label={f} active={typeFilter === f} onClick={() => setTypeFilter(f)} />
+                    {/* Status Group */}
+                    <div className="flex items-center bg-white/5 backdrop-blur-md p-1 rounded-full border border-white/5 w-full sm:w-fit justify-center sm:justify-start">
+                        {['All', 'Completed', 'Pending'].map(f => (
+                            <button
+                                key={f}
+                                onClick={() => setStatusFilter(f)}
+                                className={cn(
+                                    "px-5 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap",
+                                    statusFilter === f ? "bg-brand-yellow text-black shadow-[0_0_20px_rgba(212,244,85,0.3)]" : "text-zinc-500 hover:text-zinc-300"
+                                )}
+                            >
+                                {f}
+                            </button>
                         ))}
                     </div>
                 </div>
 
                 {/* Date & Search Row */}
-                <div className="flex items-center justify-between pt-2">
-                    <h3 className="text-white font-bold text-sm tracking-tight text-zinc-300">{todayStr}</h3>
+                <div ref={searchRef} className={cn("flex flex-col sm:flex-row items-center justify-between gap-6 pt-4 border-t border-white/5 sm:border-0 transition-all duration-700 delay-150 ease-out", searchInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+                    <h3 className="text-white font-black text-sm tracking-widest uppercase text-zinc-500">{todayStr}</h3>
 
-                    <div className="flex items-center space-x-4">
-                        <div className="relative group w-64">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-yellow transition-colors" size={14} />
+                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                        <div className="relative group w-full sm:w-64">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-yellow transition-colors" size={16} />
                             <input
                                 type="text"
                                 placeholder="Search description..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-white/5 backdrop-blur-md border border-white/5 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-brand-yellow/30 transition-all font-medium"
+                                className="w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-brand-yellow/50 transition-all font-medium"
                             />
                         </div>
 
                         <button
                             onClick={() => role === 'Viewer' && setShowRestrictedModal(true)}
                             className={cn(
-                                "flex items-center space-x-2 px-6 py-2 rounded-xl text-[10px] font-black transition-all transform active:scale-95 shadow-lg flex-shrink-0",
+                                "flex items-center space-x-3 px-8 py-3.5 rounded-2xl text-xs font-black tracking-widest uppercase transition-all transform active:scale-95 shadow-2xl w-full sm:w-auto justify-center",
                                 role === 'Admin'
-                                    ? "bg-brand-yellow text-black hover:bg-white shadow-brand-yellow/20"
+                                    ? "bg-brand-yellow text-black hover:scale-105 shadow-brand-yellow/20"
                                     : "bg-white/5 text-zinc-600 cursor-not-allowed opacity-50"
                             )}
                         >
-                            <Plus size={14} strokeWidth={3} />
-                            <span>ADD TRANSACTION</span>
+                            <Plus size={16} strokeWidth={3} />
+                            <span>ADD</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Table Area (Horizontal Scrollable) */}
-            <div className="flex-1 overflow-x-auto px-6 md:px-12 lg:px-16 custom-scrollbar pb-10">
-                <div className="min-w-[900px] border border-white/5 rounded-2xl overflow-hidden bg-white/5 backdrop-blur-xl shadow-2xl">
-                    <table className="w-full text-left border-collapse">
+            {/* Table Area */}
+            <div ref={tableRef} className={cn("flex-1 px-4 md:px-12 lg:px-16 pb-10 transition-all duration-700 delay-200 ease-out", tableInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+
+                <div className="w-full border border-white/5 rounded-2xl overflow-hidden bg-white/5 backdrop-blur-xl shadow-2xl overflow-x-auto lg:overflow-x-visible custom-scrollbar">
+                    <table className="w-full text-left border-collapse min-w-[600px] md:min-w-full">
+
                         <thead>
                             <tr className="border-b border-white/5 bg-white/5">
                                 <th
@@ -400,7 +427,7 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
                                     onClick={() => handleSort('amount')}
                                 >
                                     <div className="flex items-center justify-end space-x-2">
-                                        <span>Amount / Type</span>
+                                        <span>Amount</span>
                                         {sortConfig.key === 'amount' ? (
                                             sortConfig.direction === 'desc' ? <ArrowDown size={12} className="text-brand-yellow" /> : <ArrowUp size={12} className="text-brand-yellow" />
                                         ) : (
@@ -408,10 +435,11 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
                                         )}
                                     </div>
                                 </th>
-                                <th className="py-4 px-6 text-[10px] uppercase tracking-widest font-black text-zinc-400 text-center">Status</th>
-                                <th className="py-4 px-6 text-[10px] uppercase tracking-widest font-black text-zinc-400 text-right">Actions</th>
+                                <th className="hidden md:table-cell py-4 px-6 text-[10px] uppercase tracking-widest font-black text-zinc-400 text-center">Status</th>
+                                <th className="hidden sm:table-cell py-4 px-6 text-[10px] uppercase tracking-widest font-black text-zinc-400 text-right">Actions</th>
                             </tr>
                         </thead>
+
                         <tbody className="divide-y divide-zinc-800/50">
                             {filteredTransactions.length > 0 ? (
                                 filteredTransactions.map((t, index) => (
@@ -454,10 +482,10 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-6 text-center">
+                                        <td className="hidden md:table-cell py-4 px-6 text-center">
                                             <StatusBadge status={t.status} />
                                         </td>
-                                        <td className="py-4 px-6 text-right">
+                                        <td className="hidden sm:table-cell py-4 px-6 text-right">
                                             <div className="flex items-center justify-end space-x-1">
                                                 <button
                                                     onClick={(e) => {
@@ -486,6 +514,7 @@ const TransactionsPage = ({ data, role = 'Admin', setRole, timeFilter, setTimeFi
                                             </div>
                                         </td>
                                     </tr>
+
                                 ))
                             ) : (
                                 <tr>

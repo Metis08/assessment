@@ -15,14 +15,15 @@ export const fetchTransactions = async (filter, month, year) => {
 
         setTimeout(() => {
             // 1. Check localStorage first
-            let data = loadTransactions();
+            let data = loadTransactions(month, year);
 
             // 2. If no data in localStorage, fallback to mock data
             if (!data || !Array.isArray(data) || data.length === 0) {
                 data = getBusinessTransactions(filter, month, year);
                 // Persist the fallback data so next refresh loads this
-                saveTransactions(data);
+                saveTransactions(data, month, year);
             }
+
 
             // NOTE: In a real app, we might perform filtering on the server/API.
             // Here we assume the "API" returns the relevant data for the current view.

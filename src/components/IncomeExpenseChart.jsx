@@ -50,7 +50,8 @@ const IncomeExpenseChart = ({ data }) => {
 
             <div className="h-[260px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={data} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+
                         <defs>
                             <linearGradient id="inFlowGrad" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#00F5FF" stopOpacity={0.2} />

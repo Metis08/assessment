@@ -167,7 +167,9 @@ export const getBusinessTransactions = (filter, selectedMonth = 'April', selecte
 
     const transactions = [];
     for (let i = 1; i <= count; i++) {
-        const item = pool[i % pool.length];
+        // Variation: Shift pool based on month index to change the "highest" category
+        const shiftedIndex = (i + monthIndex * 3) % pool.length;
+        const item = pool[shiftedIndex];
         const type = (item.category === 'Revenue' || item.category === 'Investments') ? 'credited' : 'debited';
 
         let date;
@@ -183,6 +185,11 @@ export const getBusinessTransactions = (filter, selectedMonth = 'April', selecte
             date = `${yearNum}-${month.toString().padStart(2, '0')}-15`;
         }
 
+        // Amount variation based on month index to make each month unique
+        const amountVariance = 1 + (Math.sin(i + monthIndex) * 0.2);
+        const baseAmount = type === 'credited' ? (5000 * baseAmountMult) : (500 * baseAmountMult);
+        const dynamicAmount = Math.round((baseAmount + (i * 200)) * amountVariance);
+
         transactions.push({
             id: `${filter}-${selectedMonth}-${selectedYear}-${i}`,
             name: item.name,
@@ -190,11 +197,12 @@ export const getBusinessTransactions = (filter, selectedMonth = 'April', selecte
             icon: item.icon,
             date: date,
             time: `${Math.floor(Math.random() * 24).toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
-            amount: type === 'credited' ? (5000 * baseAmountMult) + (i * 1000) : (500 * baseAmountMult) + (i * 200),
+            amount: dynamicAmount,
             type: type,
             status: i % 7 === 0 ? 'Processing' : i % 5 === 0 ? 'Pending' : 'Completed',
         });
     }
+
 
     return transactions;
 };

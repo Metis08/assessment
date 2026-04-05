@@ -4,8 +4,10 @@ import {
     TrendingDown,
     Zap,
     Target,
-    ArrowUpRight,
-    ArrowDownRight,
+    Briefcase,
+    Activity,
+    ChevronDown,
+    Calendar,
     ShoppingBag,
     Play,
     Coffee,
@@ -14,12 +16,21 @@ import {
     Tv,
     MapPin,
     Utensils,
-    Activity,
-    Briefcase,
     Globe,
     Cpu,
-    Hash
+    Hash,
+    ArrowUpRight,
+    ArrowDownRight
 } from 'lucide-react';
+
+import TimeFilter from './TimeFilter';
+import HeatmapCalendar from './HeatmapCalendar';
+import MonthlyComparisonChart from './MonthlyComparisonChart';
+import { cn } from '../utils/cn';
+import { useInView } from '../hooks/useInView';
+
+
+
 import {
     BarChart,
     Bar,
@@ -31,13 +42,13 @@ import {
     Cell,
     Legend
 } from 'recharts';
-import { cn } from '../utils/cn';
+
 
 const iconMap = {
     ShoppingBag, Play, Coffee, Car, Wallet, Tv, MapPin, Utensils, Activity, Briefcase, Globe, Cpu, Hash
 };
 
-const InsightCard = ({ title, value, subtext, indicator, trend, colorClass = "text-brand-yellow" }) => (
+const InsightCard = ({ title, value, subtext, trend, colorClass = "text-brand-yellow" }) => (
     <div className="bg-white/5 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-2xl space-y-4 hover:bg-white/10 transition-all group overflow-hidden relative">
         <div className="absolute -right-4 -top-4 w-24 h-24 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/10 transition-all" />
 
@@ -46,11 +57,6 @@ const InsightCard = ({ title, value, subtext, indicator, trend, colorClass = "te
                 <p className="text-zinc-500 text-[10px] uppercase tracking-widest font-black mb-1">{title}</p>
                 <h3 className={cn("text-3xl font-black tracking-tighter", colorClass)}>{value}</h3>
             </div>
-            {indicator && (
-                <div className={cn("w-10 h-10 rounded-2xl flex items-center justify-center bg-white/5 border border-white/5 text-zinc-400 group-hover:text-brand-yellow transition-all")}>
-                    {indicator}
-                </div>
-            )}
         </div>
 
         <div className="space-y-4 relative z-10">
@@ -64,6 +70,7 @@ const InsightCard = ({ title, value, subtext, indicator, trend, colorClass = "te
         </div>
     </div>
 );
+
 
 const ComparisonCard = ({ title, current, previous, subtext }) => {
     const isImproved = current < previous;
@@ -104,16 +111,14 @@ const ComparisonCard = ({ title, current, previous, subtext }) => {
     );
 };
 
-const ObservationCard = ({ title, insight, icon: Icon, subtext }) => (
+const ObservationCard = ({ title, insight, subtext }) => (
     <div className="bg-white/5 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-2xl flex flex-col justify-between hover:bg-white/10 transition-all group overflow-hidden relative">
         <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-purple-500/5 rounded-full blur-3xl group-hover:bg-purple-500/10 transition-all" />
 
         <div className="relative z-10 flex items-center space-x-4 mb-6">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-brand-yellow/10 text-brand-yellow shadow-lg shadow-brand-yellow/5">
-                <Icon size={24} />
-            </div>
             <p className="text-zinc-500 text-[10px] uppercase tracking-widest font-black leading-tight">{title}</p>
         </div>
+
 
         <div className="relative z-10 space-y-4">
             <h3 className="text-xl font-black tracking-tight text-white leading-tight pr-4">{insight}</h3>
@@ -141,7 +146,18 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-const InsightsPage = ({ data = [], isLoading = false }) => {
+const InsightsPage = ({
+    data = [],
+    isLoading = false,
+    timeFilter,
+    setTimeFilter,
+    selectedMonth,
+    setSelectedMonth,
+    selectedYear,
+    setSelectedYear
+}) => {
+
+
     if (isLoading) {
         return (
             <div className="flex-1 h-full overflow-y-auto px-6 md:px-12 lg:px-16 pt-8 pb-32 space-y-12 animate-in fade-in duration-500">
@@ -165,13 +181,42 @@ const InsightsPage = ({ data = [], isLoading = false }) => {
         let totalExpenses = 0;
         let count = 0;
 
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        // Reference point from selected props
+        const currentMonthIndex = monthNames.indexOf(selectedMonth);
+        const currentYearNum = parseInt(selectedYear);
+
+        // Calculate last month for comparison
+        const lastMonthIndex = currentMonthIndex === 0 ? 11 : currentMonthIndex - 1;
+        const lastMonthYearNum = currentMonthIndex === 0 ? currentYearNum - 1 : currentYearNum;
+
+        let thisMonthSpending = 0;
+        let lastMonthSpending = 0;
+
         transactions.forEach(t => {
+            const tDate = new Date(t.date);
+            const tMonth = tDate.getMonth();
+            const tYear = tDate.getFullYear();
+
             if (t.type === 'debited') {
+                // Category totals
                 categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
                 totalExpenses += t.amount;
                 count++;
+
+                // Monthly comparison (based on selected month)
+                if (tMonth === currentMonthIndex && tYear === currentYearNum) {
+                    thisMonthSpending += t.amount;
+                } else if (tMonth === lastMonthIndex && tYear === lastMonthYearNum) {
+                    lastMonthSpending += t.amount;
+                }
             }
         });
+
 
         const sortedCategories = Object.entries(categoryTotals)
             .map(([name, value]) => ({ name, value }))
@@ -180,14 +225,58 @@ const InsightsPage = ({ data = [], isLoading = false }) => {
         const highest = sortedCategories[0] || { name: 'None', value: 0 };
         const secondHighest = sortedCategories[1] || { name: 'None', value: 0 };
 
+        // Calculate Daily Performance for the chart
+        const dailyPerformance = [];
+        const daysInMonth = new Date(currentYearNum, currentMonthIndex + 1, 0).getDate();
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            let dayIncome = 0;
+            let dayExpense = 0;
+            const dStr = `${currentYearNum}-${String(currentMonthIndex + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+            transactions.forEach(t => {
+                if (t.date === dStr) {
+                    if (t.type === 'credited') dayIncome += t.amount;
+                    else dayExpense += t.amount;
+                }
+            });
+
+            dailyPerformance.push({
+                day: d,
+                income: dayIncome,
+                in2: Math.round(dayIncome * 0.7),
+                in3: Math.round(dayIncome * 0.4),
+                net: Math.round(dayIncome - dayExpense),
+                n2: Math.round((dayIncome - dayExpense) * 0.6),
+                n3: Math.round((dayIncome - dayExpense) * 0.3),
+            });
+        }
+
+        // Percentage calculation
+        const percentageChange = lastMonthSpending > 0
+            ? ((thisMonthSpending - lastMonthSpending) / lastMonthSpending) * 100
+            : 0;
+
+        const highestCategoryPercentage = totalExpenses > 0
+            ? Math.round((highest.value / totalExpenses) * 100)
+            : 0;
+
         return {
             categoryTotals: sortedCategories,
             highest,
             secondHighest,
             totalExpenses,
-            transactionCount: count
+            transactionCount: count,
+            thisMonthSpending,
+            lastMonthSpending,
+            percentageChange: percentageChange.toFixed(1),
+            highestCategoryPercentage,
+            dailyPerformance
         };
-    }, [transactions]);
+    }, [transactions, selectedMonth, selectedYear]);
+
+
+
 
     const historicalData = [
         { month: 'Nov', Income: 850000, Expense: 620000 },
@@ -205,132 +294,108 @@ const InsightsPage = ({ data = [], isLoading = false }) => {
         { text: "Server hosting costs are trending downwards", icon: Activity },
     ];
 
+    const [headerRef, headerInView] = useInView({ triggerOnce: true });
+    const [recapRef, recapInView] = useInView({ triggerOnce: true });
+    const [visualRef, visualInView] = useInView({ triggerOnce: true });
+    const [highlightsRef, highlightsInView] = useInView({ triggerOnce: true });
+
     return (
-        <div className="flex-1 h-full overflow-y-auto px-6 md:px-12 lg:px-16 pt-8 pb-32 custom-scrollbar space-y-12">
-            <div className="space-y-1">
-                <h1 className="text-3xl font-bold tracking-tight text-white">Financial Analytics</h1>
-                <p className="text-zinc-500 text-xs font-medium uppercase tracking-widest">Business intelligence & spending patterns</p>
+        <div
+            key={`${selectedMonth}-${selectedYear}`}
+            className="flex-1 h-full overflow-y-auto px-6 md:px-12 lg:px-16 pt-8 pb-32 custom-scrollbar space-y-12 animate-in fade-in slide-in-from-right-4 duration-500 ease-out"
+        >
+            <div ref={headerRef} className={cn("space-y-4 transition-all duration-700 ease-out", headerInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+
+
+                <div className="space-y-1">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white focus:outline-none">Financial Analytics</h1>
+
+
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] leading-loose">
+                            Business intelligence & spending patterns
+                        </p>
+                        <div className="flex items-center space-x-2 bg-brand-yellow/10 border border-brand-yellow/20 px-4 py-2 rounded-full shadow-[0_0_20px_rgba(212,244,85,0.05)]">
+                            <span className="text-[10px] font-black text-white whitespace-nowrap">
+                                💸 You spent <span className="text-brand-yellow">₹{stats.thisMonthSpending.toLocaleString()}</span> this month
+                            </span>
+                            <div className={cn(
+                                "flex items-center space-x-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-black",
+                                parseFloat(stats.percentageChange) >= 0 ? "text-red-400 bg-red-400/10" : "text-green-400 bg-green-400/10"
+                            )}>
+                                {parseFloat(stats.percentageChange) >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                                <span>{Math.abs(stats.percentageChange)}%</span>
+                            </div>
+                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">vs last month</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="pt-4 border-t border-white/5">
+                    <TimeFilter
+                        selectedFilter={timeFilter}
+                        onFilterChange={setTimeFilter}
+                        selectedMonth={selectedMonth}
+                        onMonthChange={setSelectedMonth}
+                        selectedYear={selectedYear}
+                        onYearChange={setSelectedYear}
+                    />
+                </div>
             </div>
 
+
+
+
             {/* Section 1: Recap Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div ref={recapRef} className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 transition-all duration-700 delay-75 ease-out", recapInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+
                 <InsightCard
                     title="Highest Spending"
                     value={stats.highest.name}
-                    subtext="Consumes 42% of your monthly operational budget."
-                    trend={42}
-                    indicator={React.createElement(iconMap[transactions.find(t => t.category === stats.highest.name)?.icon] || ShoppingBag, { size: 20 })}
+                    subtext={`Consumes ${stats.highestCategoryPercentage}% of your ${selectedMonth} budget.`}
+                    trend={stats.highestCategoryPercentage}
                 />
+
                 <ComparisonCard
                     title="Monthly Burn Rate"
-                    current={stats.totalExpenses}
-                    previous={stats.totalExpenses * 0.92} // Mocked historical
-                    subtext="Your operational efficiency improved by 8% this month."
+                    current={stats.thisMonthSpending}
+                    previous={stats.lastMonthSpending || stats.thisMonthSpending * 0.9}
+                    subtext={parseFloat(stats.percentageChange) <= 0
+                        ? `Operational efficiency improved by ${Math.abs(stats.percentageChange)}% this month.`
+                        : `Spending increased by ${stats.percentageChange}% vs last month.`}
                 />
                 <ObservationCard
                     title="Smart Observation"
-                    insight="SaaS subscriptions increased by 12% vs last month."
-                    icon={Zap}
-                    subtext="Consider consolidating redundant communication tools as you scale."
+                    insight={`${stats.highest.name} spending is ${stats.highestCategoryPercentage > 30 ? 'high' : 'stable'} this period.`}
+                    subtext={`Consider reviewing ${stats.highest.name} expenses to optimize your ${selectedMonth} runway.`}
                 />
+
             </div>
+
 
             {/* Section 2: Visual Analytics */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Category Breakdown (Horizontal Bar) */}
-                <div className="bg-white/5 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-2xl space-y-8 h-[450px] flex flex-col">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h3 className="text-xl font-black tracking-tight text-white">Category Breakdown</h3>
-                            <p className="text-zinc-500 text-[10px] uppercase tracking-widest font-black">Expense distribution by department</p>
-                        </div>
-                        <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-500">
-                            <Activity size={20} />
-                        </div>
-                    </div>
+            <div ref={visualRef} className={cn("grid grid-cols-1 lg:grid-cols-2 gap-8 transition-all duration-700 delay-150 ease-out", visualInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
 
-                    <div className="flex-1 w-full mt-4">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                                data={stats.categoryTotals.slice(0, 6)}
-                                layout="vertical"
-                                margin={{ left: 20, right: 40, top: 10, bottom: 10 }}
-                                barSize={14}
-                            >
-                                <XAxis type="number" hide />
-                                <YAxis
-                                    type="category"
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#71717a', fontSize: 10, fontWeight: 900 }}
-                                    width={120}
-                                    interval={0}
-                                />
-                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
-                                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                                    {stats.categoryTotals.slice(0, 6).map((entry, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={index === 0 ? '#D4F455' : index === 1 ? '#60a5fa' : index === 2 ? '#f472b6' : '#27272a'}
-                                        />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+                {/* Heatmap Section */}
+                <HeatmapCalendar
+                    data={transactions}
+                    timeFilter={timeFilter}
+                    month={selectedMonth}
+                    year={selectedYear}
+                />
 
-                {/* Monthly Income vs Expense (Stacked Bar) */}
-                <div className="bg-white/5 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-2xl space-y-8 h-[450px] flex flex-col">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h3 className="text-xl font-black tracking-tight text-white">Monthly Overview</h3>
-                            <p className="text-zinc-500 text-[10px] uppercase tracking-widest font-black">Revenue vs Expenditure comparison</p>
-                        </div>
-                        <div className="flex items-center space-x-6 mr-2">
-                            <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 rounded-full bg-brand-yellow" />
-                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Income</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 rounded-full bg-blue-500/50" />
-                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Expense</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div className="flex-1 w-full mt-4">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                                data={historicalData}
-                                margin={{ top: 20, right: 10, left: 40, bottom: 0 }}
-                                barGap={12}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                                <XAxis
-                                    dataKey="month"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#71717a', fontSize: 10, fontWeight: 900 }}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#71717a', fontSize: 10, fontWeight: 900 }}
-                                    width={60}
-                                />
-                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
-                                <Bar dataKey="Income" fill="#D4F455" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="Expense" fill="#3b82f6" fillOpacity={0.6} radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                {/* Monthly Comparison Chart (Restored) */}
+                <div className="w-full">
+                    <MonthlyComparisonChart data={historicalData} />
                 </div>
             </div>
 
+
+
             {/* Section 3: Simple Insights List */}
-            <div className="space-y-6 pb-20">
+            <div ref={highlightsRef} className={cn("space-y-6 pb-20 transition-all duration-700 delay-225 ease-out", highlightsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+
                 <h3 className="text-xl font-black tracking-tight text-white">Smart Highlights</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {simpleInsights.map((insight, index) => (
@@ -346,6 +411,7 @@ const InsightsPage = ({ data = [], isLoading = false }) => {
                     ))}
                 </div>
             </div>
+
         </div>
     );
 };

@@ -9,6 +9,8 @@ const Sidebar = ({ activeTab, setActiveTab, isCollapsed, onToggle, onResetData }
         { id: 'transactions', label: 'Transactions', icon: ArrowLeftRight },
     ];
 
+
+
     return (
         <>
             {/* Desktop Sidebar */}

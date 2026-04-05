@@ -13,6 +13,8 @@ import TimeFilter from './components/TimeFilter';
 import { getMonthlyData } from './utils/mockData';
 import { fetchTransactions } from './services/api';
 import { clearStorage } from './utils/storage';
+import { useInView } from './hooks/useInView';
+import { cn } from './utils/cn';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -30,8 +32,8 @@ function App() {
   const dashboardStats = useMemo(() => getMonthlyData(selectedMonth), [selectedMonth]);
 
   // Fetch initial data
-  const loadData = async () => {
-    setIsLoading(true);
+  const loadData = async (isBackground = false) => {
+    if (!isBackground) setIsLoading(true);
     try {
       const data = await fetchTransactions(timeFilter, selectedMonth, selectedYear);
       setAllTransactions(data);
@@ -42,19 +44,31 @@ function App() {
     }
   };
 
+
   useEffect(() => {
-    loadData();
+    // Only show loading for the very first fetch or tab switch if needed
+    // Otherwise, background update for seamless feel
+    loadData(allTransactions.length > 0);
   }, [timeFilter, selectedMonth, selectedYear]);
+
 
   const handleResetData = async () => {
     if (window.confirm('Are you sure you want to reset all data to defaults?')) {
       clearStorage();
-      await loadData();
+      await loadData(false);
     }
   };
 
+
+  const [dashHeaderRef, dashHeaderInView] = useInView({ triggerOnce: true, threshold: 0 });
+  const [dashChartsRef, dashChartsInView] = useInView({ triggerOnce: true, threshold: 0 });
+  const [pieRef, pieInView] = useInView({ triggerOnce: true, threshold: 0 });
+  const [dashTransRef, dashTransInView] = useInView({ triggerOnce: true, threshold: 0 });
+
+
   return (
     <div className="flex flex-col lg:flex-row h-screen font-sans transition-colors duration-500 overflow-hidden p-4 lg:p-6 lg:space-x-6 bg-black text-white">
+
       {/* Sidebar */}
       <div className="h-auto lg:h-full">
         <Sidebar
@@ -67,34 +81,41 @@ function App() {
       </div>
 
       <main className="flex-1 overflow-hidden relative rounded-2xl shadow-2xl border-t border-white/5 pb-32 lg:pb-0 transition-all duration-500 bg-dashboard-bg bg-grid-checker">
-        <div className="h-full overflow-y-auto px-4 py-6 md:px-8 md:py-8 lg:px-12 lg:py-8 custom-scrollbar">
+        <div
+          key={activeTab}
+          className="h-full overflow-y-auto px-4 py-6 md:px-8 md:py-8 lg:px-12 lg:py-8 custom-scrollbar animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-700 ease-out fill-mode-both"
+        >
           {activeTab === 'dashboard' ? (
-            <div className="animate-in fade-in duration-700">
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-6 md:space-y-0">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">Dashboard</h1>
+            <div key={selectedMonth} className="space-y-12 transition-all duration-500">
 
-                <div className="flex items-center space-x-4 overflow-x-auto pb-4 md:pb-0 custom-scrollbar-h">
-                  <StatsCard
-                    label="Total Balance"
-                    value={dashboardStats.stats.totalBalance}
-                    colorClass="text-brand-yellow"
-                  />
-                  <StatsCard
-                    label="Income"
-                    value={dashboardStats.stats.income}
-                    colorClass="text-brand-yellow"
-                  />
-                  <StatsCard
-                    label="Expenses"
-                    value={dashboardStats.stats.expenses}
-                    colorClass="text-brand-yellow"
-                  />
+              <div ref={dashHeaderRef} className={cn("transition-all duration-700 ease-out", dashHeaderInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-6 md:space-y-0">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white focus:outline-none">Dashboard</h1>
+
+                  <div className="flex flex-row items-center gap-2 sm:gap-6 w-full overflow-hidden">
+                    <StatsCard
+                      label="Total Balance"
+                      value={dashboardStats.stats.totalBalance}
+                      colorClass="text-brand-yellow"
+                    />
+                    <StatsCard
+                      label="Income"
+                      value={dashboardStats.stats.income}
+                      colorClass="text-brand-yellow"
+                    />
+                    <StatsCard
+                      label="Expenses"
+                      value={dashboardStats.stats.expenses}
+                      colorClass="text-brand-yellow"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Main Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-                <div className="lg:col-span-2 space-y-8 flex flex-col">
+                <div ref={dashChartsRef} className={cn("lg:col-span-2 space-y-8 flex flex-col transition-all duration-700 delay-150 ease-out", dashChartsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <BalanceTrendChart data={dashboardStats.balanceTrend} />
                     <ExpenseTrendChart data={dashboardStats.expenseTrend} />
@@ -103,13 +124,15 @@ function App() {
                     <IncomeExpenseChart data={dashboardStats.dailyPerformance} />
                   </div>
                 </div>
-                <div className="h-full">
-                  <CategoricalExpenseChart data={dashboardStats.categories} />
+                <div ref={pieRef} className={cn("h-full transition-all duration-700 delay-225 ease-out", pieInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+
+                  <CategoricalExpenseChart data={dashboardStats.categories} isVisible={pieInView} />
                 </div>
               </div>
 
               {/* Transactions List */}
-              <div className="mt-12 mb-12">
+              <div ref={dashTransRef} className={cn("mt-12 mb-12 transition-all duration-700 delay-300 ease-out", dashTransInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+
                 <TransactionsList
                   data={isLoading ? [] : allTransactions.slice(0, 5)}
                   isLoading={isLoading}
@@ -118,21 +141,20 @@ function App() {
               </div>
             </div>
           ) : activeTab === 'insights' ? (
-            <div className="animate-in fade-in duration-700">
-              <div className="max-w-6xl mx-auto mb-4">
-                <TimeFilter
-                  selectedFilter={timeFilter}
-                  onFilterChange={setTimeFilter}
-                  selectedMonth={selectedMonth}
-                  onMonthChange={setSelectedMonth}
-                  selectedYear={selectedYear}
-                  onYearChange={setSelectedYear}
-                />
-              </div>
-              <InsightsPage data={allTransactions} isLoading={isLoading} />
+            <div>
+              <InsightsPage
+                data={allTransactions}
+                isLoading={isLoading}
+                timeFilter={timeFilter}
+                setTimeFilter={setTimeFilter}
+                selectedMonth={selectedMonth}
+                setSelectedMonth={setSelectedMonth}
+                selectedYear={selectedYear}
+                setSelectedYear={setSelectedYear}
+              />
             </div>
           ) : activeTab === 'transactions' ? (
-            <div className="animate-in fade-in duration-700">
+            <div>
               <TransactionsPage
                 data={allTransactions}
                 isLoading={isLoading}
@@ -140,10 +162,15 @@ function App() {
                 setRole={setRole}
                 timeFilter={timeFilter}
                 setTimeFilter={setTimeFilter}
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
                 showHeaderFilters={false}
               />
             </div>
           ) : (
+
+
+
             <div className="flex items-center justify-center h-full">
               <h2 className="text-3xl font-bold text-gray-700 uppercase tracking-[0.2em]">Coming Soon</h2>
             </div>

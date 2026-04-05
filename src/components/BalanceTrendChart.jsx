@@ -33,7 +33,8 @@ const BalanceTrendChart = ({ data }) => {
             <h3 className="text-gray-400 text-xl font-bold mb-4 tracking-tight">Balance Trend</h3>
             <div className="h-[140px] w-full relative">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data} margin={{ top: 5, left: -25, right: 5, bottom: 0 }}>
+                    <AreaChart data={data} margin={{ top: 5, left: -20, right: 5, bottom: 0 }}>
+
                         <defs>
                             <linearGradient id="balGrad1" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#D4F455" stopOpacity={0.3} />
