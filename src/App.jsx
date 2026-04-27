@@ -12,6 +12,7 @@ import InsightsPage from './components/InsightsPage';
 import TimeFilter from './components/TimeFilter';
 import { getMonthlyData } from './utils/mockData';
 import { fetchTransactions } from './services/api';
+import LandingPage from './components/LandingPage';
 import { clearStorage } from './utils/storage';
 import { useInView } from './hooks/useInView';
 import { cn } from './utils/cn';
@@ -23,6 +24,7 @@ function App() {
   const [selectedYear, setSelectedYear] = useState('2026');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [timeFilter, setTimeFilter] = useState('Monthly');
+  const [isLanding, setIsLanding] = useState(true);
 
   // Data State
   const [allTransactions, setAllTransactions] = useState([]);
@@ -77,8 +79,12 @@ function App() {
   const [dashTransRef, dashTransInView] = useInView({ triggerOnce: true, threshold: 0 });
 
 
+  if (isLanding) {
+    return <LandingPage onGetStarted={() => setIsLanding(false)} />;
+  }
+
   return (
-    <div className="flex flex-col lg:flex-row h-screen font-sans transition-colors duration-500 overflow-hidden p-4 lg:p-6 lg:space-x-6 bg-black text-white">
+    <div className="flex flex-col lg:flex-row h-screen font-sans transition-colors duration-500 overflow-hidden p-4 lg:p-6 lg:space-x-6 bg-black text-white animate-in fade-in duration-1000">
 
       {/* Sidebar */}
       <div className="h-auto lg:h-full">
@@ -99,7 +105,7 @@ function App() {
           {activeTab === 'dashboard' ? (
             <div className="space-y-12 transition-all duration-500">
 
-              <div ref={dashHeaderRef} className={cn("transition-all duration-700 ease-out", dashHeaderInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
+              <div className="transition-all duration-700 ease-out opacity-100 translate-y-0">
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 space-y-8 md:space-y-0 md:gap-12">
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white focus:outline-none whitespace-nowrap">Dashboard</h1>
 
